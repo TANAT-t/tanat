@@ -36,3 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener("scroll", highlightCurrentSection);
     highlightCurrentSection(); // Run once on page load
 });
+
+console.log("Script is working!");
+alert("Hello from script.js!");
+
