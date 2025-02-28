@@ -1,42 +1,60 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const indexContainer = document.querySelector('[page-url="indice-1"]'); // Select the index container
-    const indexLinks = indexContainer.querySelectorAll("a[href^='#']");
-    const sections = [];
+    // Select the index panel using the correct ID
+    const index = document.querySelector("#X3666749238");
+    
+    if (!index) {
+        console.error("Index panel not found! Check your Cargo setup.");
+        return;
+    }
+    
+    console.log("Index panel found:", index);
 
-    indexLinks.forEach(link => {
-        const targetId = link.getAttribute("href").substring(1);
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) {
-            sections.push({ link, section: targetSection });
-        }
-    });
+    // Select all the links inside the index
+    const indexLinks = index.querySelectorAll("a[href^='#']");
+    
+    if (indexLinks.length === 0) {
+        console.error("No links found in the index.");
+        return;
+    }
+    
+    console.log("Index links found:", indexLinks);
 
-    function highlightCurrentSection() {
-        let scrollPosition = window.scrollY;
-        let viewportHeight = window.innerHeight;
-        let middleOfViewport = scrollPosition + viewportHeight / 2;
-        
-        let currentSection = null;
+    // Create an intersection observer to detect section visibility
+    const sections = Array.from(indexLinks).map(link => {
+        const sectionID = link.getAttribute("href").substring(1);
+        return document.querySelector(`[id="${sectionID}"]`);
+    }).filter(section => section !== null);
 
-        sections.forEach(({ link, section }) => {
-            let sectionTop = section.offsetTop;
-            let sectionHeight = section.offsetHeight;
+    if (sections.length === 0) {
+        console.error("No matching sections found for index links.");
+        return;
+    }
+    
+    console.log("Sections found:", sections);
 
-            if (middleOfViewport >= sectionTop && middleOfViewport < sectionTop + sectionHeight) {
-                currentSection = link;
+    const observerOptions = {
+        root: null, // viewport
+        rootMargin: "0px",
+        threshold: 0.5 // Trigger when 50% of the section is visible
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Remove 'active' class from all index links
+                indexLinks.forEach(link => link.classList.remove("active"));
+                
+                // Find the link corresponding to the visible section
+                const matchingLink = Array.from(indexLinks).find(link => 
+                    link.getAttribute("href").substring(1) === entry.target.id
+                );
+
+                if (matchingLink) {
+                    matchingLink.classList.add("active");
+                }
             }
         });
+    }, observerOptions);
 
-        indexLinks.forEach(link => link.classList.remove("active"));
-        if (currentSection) {
-            currentSection.classList.add("active");
-        }
-    }
-
-    window.addEventListener("scroll", highlightCurrentSection);
-    highlightCurrentSection(); // Run once on page load
+    sections.forEach(section => observer.observe(section));
 });
-
-console.log("Script is working!");
-alert("Hello from script.js!");
-
